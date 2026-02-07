@@ -1,0 +1,31 @@
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+
+FIXED_RESOLUTION = (640, 480)
+
+CATEGORIES = [
+    "Nose", "L_Eye", "R_Eye", "L_Ear", "R_Ear",
+    "L_Shoulder", "R_Shoulder", "L_Elbow", "R_Elbow",
+    "L_Wrist", "R_Wrist", "L_Hip", "R_Hip",
+    "L_Knee", "R_Knee", "L_Ankle", "R_Ankle"
+]
+
+PRONE_SCORE_TEMPLATE   = [True, True] + [False] * 9
+SUPINE_SCORE_TEMPLATE  = [True, True] + [False] * 6
+SITTING_SCORE_TEMPLATE = [True] + [False] * 6
+STANDING_SCORE_TEMPLATE= [True] + [False] * 2
+
+PRONE_MODEL_PATH  = BASE_DIR / "final_models" / "best_prone_12.5.25.pt"
+SUPINE_MODEL_PATH = BASE_DIR / "final_models" / "best_supine_16.10.25.pt"
+
+VIDEOS_OUTPUT_DIR = BASE_DIR / "videos_output"
+VIDEOS_OUTPUT_DIR.mkdir(exist_ok=True)
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+ASSETS_DIR = BASE_DIR/"infant_analyzer/assets"
+
+PRONE_ICON  = ASSETS_DIR / "infant_prone.png"
+SUPINE_ICON = ASSETS_DIR / "infant_supine.png"
+SITTING_ICON = ASSETS_DIR / "infant_sitting.png"
