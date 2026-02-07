@@ -1,0 +1,8 @@
+numpy
+pandas
+opencv-python
+matplotlib
+ultralytics
+scikit-learn
+tkcalendar
+tkinterdnd2

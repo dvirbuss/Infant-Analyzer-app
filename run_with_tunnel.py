@@ -8,7 +8,7 @@ from urllib.request import urlopen
 # --- SETTINGS ---
 PORT = "8502"
 SUBDOMAIN = "infant_app"        # public URL: https://infant_app.loca.lt
-APP_FILE = "app.py"             # or "app_try.py" if needed
+APP_FILE = "app_22.py"  # or "app_try.py" if needed
 # ---------------
 
 BASE_DIR = Path(__file__).resolve().parent
