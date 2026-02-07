@@ -6,3 +6,4 @@ ultralytics
 scikit-learn
 tkcalendar
 tkinterdnd2
+streamlit
