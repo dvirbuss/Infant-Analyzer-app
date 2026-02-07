@@ -32,7 +32,3 @@ This repository contains the full implementation, documentation, and output for 
     - TSV files (keypoints, angles)
     - Milestone reports
     - Visual graphs
-
----
-
-Let me know if you'd like to add badges, license, installation instructions, or how to run the code!
