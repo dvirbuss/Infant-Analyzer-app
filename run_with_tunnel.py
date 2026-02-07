@@ -1,114 +1,152 @@
-import subprocess
-import sys
-import time
-import os
+import tempfile
+import datetime
 from pathlib import Path
-from urllib.request import urlopen
+from PIL import Image
 
-# --- SETTINGS ---
-PORT = "8502"
-SUBDOMAIN = "infant_app"        # public URL: https://infant_app.loca.lt
-APP_FILE = "app_22.py"  # or "app_try.py" if needed
-# ---------------
+import streamlit as st
+import numpy as np
+import pandas as pd
+import cv2
 
-BASE_DIR = Path(__file__).resolve().parent
-os.chdir(BASE_DIR)
-
-streamlit_proc = None
-tunnel_proc = None
+import config  # your config file with ICON paths
 
 
-def kill_process(proc):
-    """Kills a subprocess safely on Windows."""
-    if proc is None:
-        return
-    try:
-        proc.terminate()
-        time.sleep(1)
-        proc.kill()
-    except Exception:
-        pass
+# ---------------------- PAGE CONFIG ----------------------
+st.set_page_config(
+    page_title="Infant Motor Development Analyzer",
+    layout="wide"
+)
+
+# ---------------------- CSS ------------------------------
+st.markdown("""
+<style>
+.app-title {
+    text-align: center;
+    font-size: 40px;
+    font-weight: 700;
+    margin-top: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.app-subtitle {
+    text-align: center;
+    font-size: 22px;
+    color: #444444;
+    margin-bottom: 2rem;
+}
+
+.pose-card {
+    background-color: #f7fbff;
+    border-radius: 12px;
+    padding: 1.2rem 1rem 1.5rem 1rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid #d0e2ff;
+    text-align: center;
+}
+
+.pose-card img {
+    height: 150px !important;
+    width: auto !important;
+    object-fit: contain;
+}
+
+.centered {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.compact-date .stDateInput {
+    width: 50px !important;
+}
+
+.compact-date input {
+    width: 50px !important;
+    text-align: center;
+}
+</style>
+""", unsafe_allow_html=True)
 
 
-def free_port(port: str):
-    """Force-free a port on Windows."""
-    try:
-        find_cmd = f'netstat -ano | findstr :{port}'
-        output = subprocess.check_output(find_cmd, shell=True).decode(errors="ignore")
-
-        for line in output.splitlines():
-            parts = line.split()
-            pid = parts[-1]
-            if pid.isdigit():
-                print(f"Closing process on port {port}: PID {pid}")
-                subprocess.call(f"taskkill /PID {pid} /F", shell=True)
-    except Exception:
-        pass
+# ---------------------- TITLE ----------------------------
+st.markdown("<div class='app-title'>Infant Motor Development Analyzer</div>", unsafe_allow_html=True)
+st.markdown("<div class='app-subtitle'>Choose infant birthday and load pose videos</div>", unsafe_allow_html=True)
 
 
-def get_tunnel_password() -> str:
-    """
-    Fetch the LocalTunnel password from https://loca.lt/mytunnelpassword.
-    Returns the text (stripped). If it fails, returns a message.
-    """
-    url = "https://loca.lt/mytunnelpassword"
-    try:
-        with urlopen(url, timeout=10) as resp:
-            text = resp.read().decode("utf-8", errors="ignore").strip()
-        return text
-    except Exception as e:
-        return f"[could not fetch password: {e}]"
+# ---------------------- BIRTH DATE ------------------------
+left, center, right = st.columns([5, 2, 5])
+with center:
+    st.markdown("<div style='text-align:center;'>Choose Infant Birthday:</div>", unsafe_allow_html=True)
+
+    with st.container():
+        st.markdown("<div class='compact-date'>", unsafe_allow_html=True)
+
+        birth_date = st.date_input(
+            "",
+            value=datetime.date.today() - datetime.timedelta(days=60),
+            format="DD/MM/YYYY"
+        )
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
-def main():
-    global streamlit_proc, tunnel_proc
+# ---------------------- IMAGE BOX LOADER ------------------
+def load_icon_box(path, box_size=(200, 200)):
+    img = Image.open(path).convert("RGBA")
+    canvas = Image.new("RGBA", box_size, (255, 255, 255, 0))
+    img.thumbnail(box_size, Image.Resampling.LANCZOS)
 
-    # Always free the port BEFORE starting
-    free_port(PORT)
+    x = (box_size[0] - img.width) // 2
+    y = (box_size[1] - img.height) // 2
+    canvas.paste(img, (x, y), img)
 
-    # 1) Start Streamlit
-    streamlit_cmd = [
-        sys.executable, "-m", "streamlit",
-        "run", APP_FILE,
-        "--server.port", PORT,
-    ]
-    print("Starting Streamlit:", " ".join(streamlit_cmd))
-    streamlit_proc = subprocess.Popen(streamlit_cmd)
-
-    # Give Streamlit a few seconds to start
-    time.sleep(5)
-
-    # # 2) Start the LocalTunnel process via shell (so Windows can find npx)
-    # tunnel_cmd = f"npx localtunnel --port {PORT} --subdomain {SUBDOMAIN}"
-    # print("Starting LocalTunnel:", tunnel_cmd)
-    # tunnel_proc = subprocess.Popen(tunnel_cmd, shell=True)
-    #
-    # # Wait a bit so the tunnel actually comes up
-    # time.sleep(8)
-    #
-    # public_url = f"https://{SUBDOMAIN}.loca.lt"
-    # password = get_tunnel_password()
-    #
-    # print("\n====================================")
-    # print("the url is:")
-    # print(f"  {public_url}")
-    # print("\nthe password is:")
-    # print(f"  {password}")
-    # print("====================================\n")
-    # print("Press STOP or Ctrl+C to close everything.\n")
-
-    try:
-        # Wait for Streamlit to finish
-        streamlit_proc.wait()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        print("\nStopping processes…")
-        kill_process(streamlit_proc)
-        kill_process(tunnel_proc)
-        free_port(PORT)
-        print("✔ Clean shutdown complete. Port freed.")
+    return canvas
 
 
-if __name__ == "__main__":
-    main()
+# ---------------------- VIDEO CARDS -----------------------
+st.markdown("<h4 style='text-align:center;'>Load Infant Videos:</h4>", unsafe_allow_html=True)
+cols = st.columns(3, gap="large")
+
+uploaded = {}
+
+with cols[0]:
+    st.markdown("<div class='pose-card'>", unsafe_allow_html=True)
+    st.image(load_icon_box(config.PRONE_ICON))
+    uploaded["prone"] = st.file_uploader("Prone Video", type=["mp4"])
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with cols[1]:
+    st.markdown("<div class='pose-card'>", unsafe_allow_html=True)
+    st.image(load_icon_box(config.SUPINE_ICON))
+    uploaded["supine"] = st.file_uploader("Supine Video (future)", type=["mp4"])
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with cols[2]:
+    st.markdown("<div class='pose-card'>", unsafe_allow_html=True)
+    st.image(load_icon_box(config.SITTING_ICON))
+    uploaded["sitting"] = st.file_uploader("Sitting Video (future)", type=["mp4"])
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+# ---------------------- GENERATE BUTTON -------------------
+generate_disabled = uploaded["prone"] is None
+st.markdown("<div class='centered'>", unsafe_allow_html=True)
+run_button = st.button("Generate", disabled=generate_disabled)
+st.markdown("</div>", unsafe_allow_html=True)
+
+
+# ---------------------- RUN ANALYSIS ----------------------
+if run_button and uploaded["prone"] is not None:
+
+    prone_file = uploaded["prone"]
+
+    with st.spinner("Processing prone video... this may take a bit"):
+        tmp_dir = Path(tempfile.mkdtemp())
+        prone_path = tmp_dir / prone_file.name
+        with open(prone_path, "wb") as f:
+            f.write(prone_file.read())
+
+        # 📌 PLACE YOUR ANALYSIS FUNCTION HERE
+        # result = run_prone(str(prone_path), birth_date)
+
+    st.success("Processing complete! (analysis logic not activated yet)")
