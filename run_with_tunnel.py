@@ -78,24 +78,24 @@ def main():
     # Give Streamlit a few seconds to start
     time.sleep(5)
 
-    # 2) Start the LocalTunnel process via shell (so Windows can find npx)
-    tunnel_cmd = f"npx localtunnel --port {PORT} --subdomain {SUBDOMAIN}"
-    print("Starting LocalTunnel:", tunnel_cmd)
-    tunnel_proc = subprocess.Popen(tunnel_cmd, shell=True)
-
-    # Wait a bit so the tunnel actually comes up
-    time.sleep(8)
-
-    public_url = f"https://{SUBDOMAIN}.loca.lt"
-    password = get_tunnel_password()
-
-    print("\n====================================")
-    print("the url is:")
-    print(f"  {public_url}")
-    print("\nthe password is:")
-    print(f"  {password}")
-    print("====================================\n")
-    print("Press STOP or Ctrl+C to close everything.\n")
+    # # 2) Start the LocalTunnel process via shell (so Windows can find npx)
+    # tunnel_cmd = f"npx localtunnel --port {PORT} --subdomain {SUBDOMAIN}"
+    # print("Starting LocalTunnel:", tunnel_cmd)
+    # tunnel_proc = subprocess.Popen(tunnel_cmd, shell=True)
+    #
+    # # Wait a bit so the tunnel actually comes up
+    # time.sleep(8)
+    #
+    # public_url = f"https://{SUBDOMAIN}.loca.lt"
+    # password = get_tunnel_password()
+    #
+    # print("\n====================================")
+    # print("the url is:")
+    # print(f"  {public_url}")
+    # print("\nthe password is:")
+    # print(f"  {password}")
+    # print("====================================\n")
+    # print("Press STOP or Ctrl+C to close everything.\n")
 
     try:
         # Wait for Streamlit to finish
