@@ -82,9 +82,10 @@ with center:
         st.markdown("<div class='compact-date'>", unsafe_allow_html=True)
 
         birth_date = st.date_input(
-            "",
+            "Infant birthday",
             value=datetime.date.today() - datetime.timedelta(days=60),
-            format="DD/MM/YYYY"
+            format="DD/MM/YYYY",
+            label_visibility="collapsed"
         )
 
         st.markdown("</div>", unsafe_allow_html=True)

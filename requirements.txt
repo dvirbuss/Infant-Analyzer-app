@@ -7,12 +7,3 @@ opencv-python-headless
 matplotlib
 pillow
 scikit-learn
-tkcalendar
-tkinterdnd2
-
-# YOLOv8 + CPU-only torch (streamlit cloud safe)
-torch==2.2.0+cpu
-torchvision==0.17.0+cpu
---extra-index-url https://download.pytorch.org/whl/cpu
-
-ultralytics==8.1.0
