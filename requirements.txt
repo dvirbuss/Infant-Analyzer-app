@@ -1,9 +1,18 @@
+streamlit==1.31.1
+altair==5.2.0
+
 numpy
 pandas
-opencv-python
+opencv-python-headless
 matplotlib
-ultralytics
+pillow
 scikit-learn
 tkcalendar
 tkinterdnd2
-streamlit
+
+# YOLOv8 + CPU-only torch (streamlit cloud safe)
+torch==2.2.0+cpu
+torchvision==0.17.0+cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+ultralytics==8.1.0
