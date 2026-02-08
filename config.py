@@ -24,7 +24,7 @@ VIDEOS_OUTPUT_DIR.mkdir(exist_ok=True)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-ASSETS_DIR = BASE_DIR/"assets"
+ASSETS_DIR = BASE_DIR/"infant-analyzer-app/assets"
 
 PRONE_ICON  = ASSETS_DIR / "infant_prone.png"
 SUPINE_ICON = ASSETS_DIR / "infant_supine.png"
