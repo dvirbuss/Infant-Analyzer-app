@@ -1,5 +1,5 @@
 import sys
-from requirements_utils import find_missing
+from core.requirements_utils import find_missing
 
 def check_requirements():
     """Check missing packages and exit cleanly if needed."""
