@@ -128,11 +128,51 @@ with cols[2]:
     st.markdown("</div>", unsafe_allow_html=True)
 
 
-# ---------------------- GENERATE BUTTON -------------------
+# ---------------------- GENERATE BUTTON (BIG + CENTERED + COLOR LOGIC) ----------------------
+
+# Button styles
+button_color_disabled = """
+<style>
+div.stButton > button:first-child {
+    background-color: #d9d9d9 !important;  /* light gray */
+    color: #666 !important;               /* dark gray text */
+    border-radius: 12px !important;
+    width: 260px !important;
+    height: 70px !important;
+    font-size: 50px !important;
+    font-weight: 700 !important;
+    cursor: not-allowed !important;
+}
+</style>
+"""
+
+button_color_enabled = """
+<style>
+div.stButton > button:first-child {
+    background-color: #4CAF50 !important; /* green */
+    color: white !important;
+    border-radius: 20px !important;
+    width: 260px !important;
+    height: 70px !important;
+    font-size: 50px !important;
+    font-weight: 700 !important;
+}
+</style>
+"""
+
+# Check if button should be disabled
 generate_disabled = uploaded["prone"] is None
-st.markdown("<div class='centered'>", unsafe_allow_html=True)
-run_button = st.button("Generate", disabled=generate_disabled)
-st.markdown("</div>", unsafe_allow_html=True)
+
+# Apply correct style
+if generate_disabled:
+    st.markdown(button_color_disabled, unsafe_allow_html=True)
+else:
+    st.markdown(button_color_enabled, unsafe_allow_html=True)
+
+# Center the button
+btn_cols = st.columns([3, 2, 3])
+with btn_cols[1]:
+    run_button = st.button("Generate", disabled=generate_disabled)
 
 
 # ---------------------- RUN ANALYSIS ----------------------
