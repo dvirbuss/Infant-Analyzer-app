@@ -2,7 +2,7 @@ import os
 import cv2
 from ultralytics import YOLO
 from .helpers import extract_keypoints_xy, normalize_coordinates
-from . import config
+import config
 
 def is_head_facing_right(keypoints):
     nose = keypoints.get("Nose")

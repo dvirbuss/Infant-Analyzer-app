@@ -52,18 +52,16 @@ def requirement_to_import_name(req_line: str) -> Tuple[str, str]:
     return pip_name, import_name
 
 
-def find_missing(requirements_path: str | Path = "requirements.txt") -> List[str]:
-    """
-    Returns a list of pip package names that appear missing (based on import test).
-    """
-    missing: List[str] = []
-    reqs = read_requirements(requirements_path)
-    for req_line in reqs:
-        pip_name, import_name = requirement_to_import_name(req_line)
-        try:
-            importlib.import_module(import_name)
-        except Exception:
-            missing.append(pip_name)
+def find_missing(requirements_file):
+    import pkg_resources
+    required = {
+        req.project_name.lower(): req
+        for req in pkg_resources.parse_requirements(open(requirements_file))
+    }
+
+    installed = {pkg.key.lower() for pkg in pkg_resources.working_set}
+
+    missing = [str(req) for name, req in required.items() if name not in installed]
     return missing
 
 
