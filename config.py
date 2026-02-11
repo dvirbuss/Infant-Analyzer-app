@@ -1,6 +1,15 @@
+import os
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parents[1] / "infant-analyzer-app"
+
+# Direct paths to your assets
+ASSETS_DIR = BASE_DIR / "assets"
+
+# Icons
+PRONE_ICON   = ASSETS_DIR / "infant_prone.png"
+SITTING_ICON = ASSETS_DIR / "infant_sitting.png"
+SUPINE_ICON  = ASSETS_DIR / "infant_supine.png"
 
 FIXED_RESOLUTION = (640, 480)
 
@@ -20,12 +29,5 @@ PRONE_MODEL_PATH  = BASE_DIR / "final_models" / "best_prone_12.5.25.pt"
 SUPINE_MODEL_PATH = BASE_DIR / "final_models" / "best_supine_16.10.25.pt"
 
 VIDEOS_OUTPUT_DIR = BASE_DIR / "videos_output"
-VIDEOS_OUTPUT_DIR.mkdir(exist_ok=True)
+VIDEOS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-ASSETS_DIR = BASE_DIR/"infant-analyzer-app/assets"
-
-PRONE_ICON  = ASSETS_DIR / "infant_prone.png"
-SUPINE_ICON = ASSETS_DIR / "infant_supine.png"
-SITTING_ICON = ASSETS_DIR / "infant_sitting.png"

@@ -1,7 +1,11 @@
 import sys
+import os
 import subprocess
 from pathlib import Path
 from core.requirements_utils import find_missing
+
+project_root = Path(__file__).resolve().parent
+os.chdir(project_root)
 
 REQUIREMENTS_FILE = "requirements.txt"
 STREAMLIT_APP_FILE = "app.py"   # <-- RUN STREAMLIT UI
@@ -25,10 +29,10 @@ def run_streamlit():
         sys.exit(1)
     venv_python = Path(__file__).resolve().parent / ".venv" / "Scripts" / "python.exe"
     python_exec = venv_python if venv_python.exists() else sys.executable
-    cmd = [str(python_exec), "-m", "streamlit", "run", str(app_path), "--server.port", "8502",
+    cmd = [str(python_exec), "-m", "streamlit", "run", str(app_path), "--server.port", "8503",
     "--server.address", "127.0.0.1"]
     print("\n🚀 Launching Streamlit...")
-    subprocess.call(cmd)
+    subprocess.call(cmd, cwd=str(project_root))
 
 if __name__ == "__main__":
     print("🔍 Checking requirements...")

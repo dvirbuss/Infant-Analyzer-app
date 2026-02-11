@@ -6,6 +6,23 @@ def base_css() -> str:
     .pose-card { background:#f7fbff; border-radius:12px; padding:1.2rem 1rem 1.5rem;
                  box-shadow:0 2px 6px rgba(0,0,0,0.05); border:1px solid #d0e2ff; text-align:center; }
     .pose-card img { height:150px !important; width:auto !important; object-fit:contain; }
+    .video-box {
+  width: 100%;
+  height: 220px;            /* <<< fixed preview height */
+  border-radius: 12px;
+  border: 1px solid #d0e2ff;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.video-box video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;      /* <<< keeps aspect ratio without stretching */
+}
     </style>
     """
 

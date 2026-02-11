@@ -1,26 +1,26 @@
-import tempfile
 import datetime
+import streamlit as st
 from pathlib import Path
 
-import streamlit as st
+# Internal imports
 import config
-
 from ui.styles import base_css, generate_button_css
-from ui.components import load_icon_box
-from core.pipeline import run
-from ui.utils_upload import save_uploaded_video
+from ui.components.pose_card import render_pose_card, PoseSpec
+from ui.utils_upload import save_video_bytes
+
 
 def render_app():
+    # --- Setup ---
     st.set_page_config(page_title="Infant Motor Development Analyzer", layout="wide")
     st.markdown(base_css(), unsafe_allow_html=True)
 
     st.markdown("<div class='app-title'>Infant Motor Development Analyzer</div>", unsafe_allow_html=True)
     st.markdown("<div class='app-subtitle'>Choose infant birthday and load pose videos</div>", unsafe_allow_html=True)
 
-    # --- Birthday ---
-    left, center, right = st.columns([5, 2, 5])
-    with center:
-        st.markdown("<div style='text-align:center;'>Choose Infant Birthday:</div>", unsafe_allow_html=True)
+    # --- 1. Birthday (Centered) ---
+    _, center_date, _ = st.columns([5, 2, 5])
+    with center_date:
+        st.markdown("<h4 style='text-align:center;'>Choose Infant Birthday:</h4>", unsafe_allow_html=True)
         birth_date = st.date_input(
             "Infant birthday",
             value=datetime.date.today() - datetime.timedelta(days=60),
@@ -28,82 +28,49 @@ def render_app():
             label_visibility="collapsed"
         )
 
-    # --- Upload cards ---
+    # --- 2. Render Cards ---
+    poses = [
+        PoseSpec(key="prone", title="Prone", icon_path=config.PRONE_ICON),
+        PoseSpec(key="supine", title="Supine", icon_path=config.SUPINE_ICON),
+        PoseSpec(key="sitting", title="Sitting", icon_path=config.SITTING_ICON),
+    ]
+
     st.markdown("<h4 style='text-align:center;'>Load Infant Videos:</h4>", unsafe_allow_html=True)
     cols = st.columns(3, gap="large")
-    uploaded = {}
-    if "saved_prone_path" not in st.session_state:
-        st.session_state.saved_prone_path = None
 
-    with cols[0]:
-        st.markdown("<div class='pose-card'>", unsafe_allow_html=True)
-        st.image(load_icon_box(config.PRONE_ICON))
+    for i, spec in enumerate(poses):
+        with cols[i]:
+            # Safety check: Prevent crash if icon is missing
+            if not spec.icon_path.exists():
+                st.warning(f"File not found: {spec.icon_path.name}")
 
-        uploaded["prone"] = st.file_uploader("Prone Video", type=["mp4"], key="prone_uploader")
-
-        if uploaded["prone"] is not None and uploaded["prone"].size == 0:
-            st.error("Upload returned 0 bytes. Refresh the page (F5) and re-upload.")
-            st.stop()
-
-        # ✅ PREVIEW GOES EXACTLY HERE (inside the prone card)
-        if uploaded["prone"] is not None:
-            st.markdown("**Preview:**")
-            st.video(uploaded["prone"].getvalue())
-
-            # Optional: confirm-save button right under the preview
-            if st.button("✅ Confirm & Save Prone Video", key="save_prone_btn"):
-                saved_path = save_uploaded_video(uploaded["prone"], subdir_name="uploads")
-                st.session_state.saved_prone_path = str(saved_path)
-                st.success(f"Saved: {saved_path} ({Path(saved_path).stat().st_size / 1_048_576:.2f} MB)")
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with cols[1]:
-        st.markdown("<div class='pose-card'>", unsafe_allow_html=True)
-        st.image(load_icon_box(config.SUPINE_ICON))
-        uploaded["Supine"] = st.file_uploader("Supine Video (future)", type=["mp4"])
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with cols[2]:
-        st.markdown("<div class='pose-card'>", unsafe_allow_html=True)
-        st.image(load_icon_box(config.SITTING_ICON))
-        uploaded["Sitting"] = st.file_uploader("Sitting Video (future)", type=["mp4"])
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    # For now: only Prone
-    pose = "prone"
-    enabled = uploaded[pose] is not None
-    st.markdown(generate_button_css(enabled), unsafe_allow_html=True)
-
-    btn_cols = st.columns([3, 2, 3])
-    with btn_cols[1]:
-        run_button = st.button("Generate", disabled=not enabled)
-
-    # --- Run pipeline ---
-    if run_button and uploaded[pose] is not None:
-        with st.spinner("Processing..."):
-            tmp_dir = Path(tempfile.mkdtemp())
-            in_path = tmp_dir / uploaded[pose].name
-            in_path.write_bytes(uploaded[pose].read())
-            out_dir = tmp_dir / "outputs"
-
-            result = run(
-                pose=pose,
-                video_path=str(in_path),
-                birthdate=birth_date,
-                out_dir=out_dir
+            render_pose_card(
+                spec=spec,
+                save_fn=save_video_bytes,
+                subdir_name=f"infant_{birth_date.strftime('%Y%m%d')}"
             )
 
-        st.success("Done!")
+    # --- 3. Generate Button (Centered & Green) ---
+    # Check session state keys AFTER cards render
+    all_confirmed = all([
+        st.session_state.get("prone__confirmed", False),
+        st.session_state.get("supine__confirmed", False),
+        st.session_state.get("sitting__confirmed", False)
+    ])
 
-        c1, c2 = st.columns(2)
-        with c1:
-            st.metric("Age (months)", result["age_months"])
-            st.metric("AIMS Score", result["aims_score"])
-            st.video(result["artifacts"]["video_out"])
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    _, btn_col, _ = st.columns([5, 2, 5])  # Ratio for centering
 
-        with c2:
-            if "angles_plot" in result["reports"]:
-                st.image(result["reports"]["angles_plot"], caption="Angles over time", use_container_width=True)
-            st.image(result["reports"]["expert_plot"], caption="Expert report", use_container_width=True)
-            st.image(result["reports"]["parent_plot"], caption="Parent report", use_container_width=True)
+    with btn_col:
+        st.markdown(generate_button_css(all_confirmed), unsafe_allow_html=True)
+        if st.button("GENERATE", disabled=not all_confirmed):
+            st.balloons()
+            st.success("Analysis triggered!")
+
+    # --- 4. DEBUG SECTION (See where it's looking) ---
+    with st.expander("🛠️ Debug Path Info"):
+        st.write(f"**BASE_DIR:** `{config.BASE_DIR}`")
+        st.write(f"**ASSETS_DIR:** `{config.ASSETS_DIR}`")
+        for p in poses:
+            exists = "✅ Found" if p.icon_path.exists() else "❌ NOT FOUND"
+            st.write(f"**{p.title} Icon Path:** `{p.icon_path}` | {exists}")
