@@ -43,8 +43,7 @@ def mirror_video(input_path, output_path):
         os.remove(input_path)
         os.rename(output_path, input_path)
 
-def save_first_frame_keypoints(trained_model_path, video_path):
-    model = YOLO(str(trained_model_path))
+def save_first_frame_keypoints(model, video_path: str):
     cap = cv2.VideoCapture(video_path)
     ret, frame = cap.read()
     if not ret:

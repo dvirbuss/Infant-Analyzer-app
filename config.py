@@ -25,7 +25,7 @@ SUPINE_SCORE_TEMPLATE  = [True, True] + [False] * 6
 SITTING_SCORE_TEMPLATE = [True] + [False] * 6
 STANDING_SCORE_TEMPLATE= [True] + [False] * 2
 
-PRONE_MODEL_PATH  = BASE_DIR / "final_models" / "best_prone_12.5.25.pt"
+PRONE_MODEL_PATH  = BASE_DIR / "final_models" / "best_prone_1.6.25.pt"
 SUPINE_MODEL_PATH = BASE_DIR / "final_models" / "best_supine_16.10.25.pt"
 
 VIDEOS_OUTPUT_DIR = BASE_DIR / "videos_output"

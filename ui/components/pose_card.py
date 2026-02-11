@@ -125,13 +125,20 @@ def render_pose_card(
         # Buttons row
         b1, b2 = st.columns([1, 1])
         with b1:
-            if st.button(f"✅ Confirm & Save {spec.title}", key=f"{spec.key}__save_btn"):
-                if bytes_len <= 0:
-                    st.error("Upload looks empty (0 bytes). Try uploading again.")
-                else:
-                    saved_path = save_fn(video_bytes, uploaded.name, subdir_name)
-                    st.session_state[k_saved] = saved_path
-                    st.session_state[k_confirmed] = True
+            # Check if already confirmed
+            if not st.session_state.get(k_confirmed, False):
+                if st.button(f"✅ Confirm & Save {spec.title}", key=f"{spec.key}__save_btn"):
+                    if bytes_len <= 0:
+                        st.error("Upload looks empty (0 bytes). Try uploading again.")
+                    else:
+                        saved_path = save_fn(video_bytes, uploaded.name, subdir_name)
+                        st.session_state[k_saved] = saved_path
+                        st.session_state[k_confirmed] = True
+                        # Force a rerun so the GENERATE button in main.py sees the update immediately
+                        st.rerun()
+            else:
+                # Instead of a disabled button, show a success message to remove the Red X cursor
+                st.success("Saved!")
 
         with b2:
             if st.button("🧹 Clear", key=f"{spec.key}__clear_btn"):

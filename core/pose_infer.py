@@ -5,7 +5,7 @@ import numpy as np
 import config
 from .helpers import extract_keypoints_xy, normalize_coordinates, calculate_angle, draw_angle_arc  # if you keep it
 
-def infer_video_with_angles(model, video_path: str, out_dir: Path) -> dict:
+def infer_video_with_angles(model, video_path: str, out_dir: Path, frame_callback=None) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     video_path = str(video_path)
@@ -72,6 +72,8 @@ def infer_video_with_angles(model, video_path: str, out_dir: Path) -> dict:
 
             annotated = results[0].plot() if results else frame
             out.write(annotated)
+            if frame_callback is not None:
+                frame_callback(annotated)
 
     cap.release()
     out.release()
