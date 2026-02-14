@@ -932,7 +932,7 @@ sitting_img = tk.PhotoImage(file="assets\infant_sitting.png").subsample(2, 2)
 birthday = tk.StringVar()
 
 #for now
-default_date = datetime.datetime.today() - datetime.timedelta(days=50)
+default_date = datetime.datetime.today() - datetime.timedelta(days=100)
 birthday.set(default_date.strftime("%d/%m/%y"))
 
 # Title
@@ -1054,7 +1054,7 @@ def run_main_process(pose):
     supine_trained_model_path = f"final_models/best_supine_16.10.25.pt"
     video_name = os.path.splitext(os.path.basename(video_path))[0]
     time_stamp = datetime.datetime.now().strftime("%H:%M")
-    asses_dir = f"videos_output/{time_stamp}"
+    asses_dir = f"videos_output"
     pe_trained_video_path = f"{asses_dir}/PE_trained_{video_name}.mp4"
     keypoints_tsv_path = f"{asses_dir}/Keypoints_trained_{video_name}.tsv"
     angles_tsv_path = f"{asses_dir}/Angles_trained_{video_name}.tsv"

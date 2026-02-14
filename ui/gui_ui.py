@@ -129,6 +129,9 @@ class InfantAnalyzerGUI:
             selectbackground="#3399ff",
             selectforeground="white",
         )
+        default_date = dt.date.today() - dt.timedelta(days=61)
+        self.calendar.set_date(default_date)
+
         self.calendar.pack(pady=5)
         self.calendar.bind("<<DateEntrySelected>>", lambda e: self.update_generate_state())
 
@@ -178,8 +181,12 @@ class InfantAnalyzerGUI:
         self.status_label = tk.Label(self.root, text="", font=("Segoe UI", 10), bg="#f0f7ff", fg="#003366")
         self.status_label.pack(pady=(10, 5))
 
+        self.bottom_bar = tk.Frame(self.root, bg="#f0f7ff")
+        self.bottom_bar.pack(side="bottom", fill="x", pady=15)
+
+        # Create buttons INSIDE the bottom bar (important!)
         self.generate_button = tk.Button(
-            self.root,
+            self.bottom_bar,
             text="Generate",
             command=self.on_generate_clicked,
             font=("Segoe UI", 11, "bold"),
@@ -188,15 +195,14 @@ class InfantAnalyzerGUI:
             activebackground="#218838",
             relief="flat",
             bd=0,
-            padx=10,
-            pady=6,
+            padx=14,
+            pady=8,
             state=tk.DISABLED,
             cursor="arrow",
         )
-        self.generate_button.pack(side="bottom", pady=15)
 
         self.stop_button = tk.Button(
-            self.root,
+            self.bottom_bar,
             text="Stop",
             command=self.on_stop_clicked,
             font=("Segoe UI", 11, "bold"),
@@ -204,11 +210,16 @@ class InfantAnalyzerGUI:
             fg="white",
             relief="flat",
             bd=0,
-            padx=10,
-            pady=6,
+            padx=14,
+            pady=8,
             state=tk.DISABLED,
         )
-        self.stop_button.pack(side="bottom", pady=(0, 12))
+
+        # Put them next to each other
+        self.bottom_bar.pack(side="bottom", pady=15)
+        self.generate_button.pack(side="left", padx=(25, 10))
+        self.stop_button.pack(side="left", padx=10)
+        self.bottom_bar.pack_configure(anchor="center")
 
     def _create_video_input(self, pose: str, col: int, icon_path: Path):
         tk.Label(
@@ -410,6 +421,11 @@ class InfantAnalyzerGUI:
 
             self.root.after(0, self.show_preview_window)
 
+            progress_callback = lambda frame_idx, fps, stopping: self.root.after(
+                0,
+                lambda: self.set_preview_status(
+                    f"{'Stopping… ' if stopping else ''}Frame: {frame_idx} | Time: {frame_idx / fps:.2f}s") )
+
             result = run_pipeline(
                 pose=pose,
                 video_path=video_path,
@@ -417,6 +433,7 @@ class InfantAnalyzerGUI:
                 runner="gui",
                 frame_callback=lambda frame: self.root.after(0, lambda f=frame: self.update_preview_frame(f)),
                 cancel_check=self.cancel_event.is_set,
+                progress_callback=progress_callback
             )
 
             if result.get("cancelled"):
@@ -450,3 +467,4 @@ class InfantAnalyzerGUI:
             self.processing = False
             self.stop_button.config(state=tk.DISABLED)
             self.root.after(0, self.update_generate_state)
+            self.cancel_event.clear()

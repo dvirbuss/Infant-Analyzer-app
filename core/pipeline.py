@@ -25,7 +25,7 @@ def load_model(model_path: Path) -> YOLO:
 
 
 def run(pose: str, video_path: str, birthdate: dt.date, out_dir: Path | None = None,
-    runner: str = "unknown", frame_callback=None, cancel_check=None) -> dict:
+    runner: str = "unknown", frame_callback=None, cancel_check=None, progress_callback=None) -> dict:
     if out_dir is None:
         stamp = dt.datetime.now().strftime("%d-%m-%y_%H-%M")
         video_name = Path(video_path).stem
@@ -53,8 +53,9 @@ def run(pose: str, video_path: str, birthdate: dt.date, out_dir: Path | None = N
 
     # 2) inference -> artifacts
     artifacts = infer_video_with_angles(model=model, video_path=video_path,
-        out_dir=out_dir, frame_callback=frame_callback, cancel_check=cancel_check  # pass through
+        out_dir=out_dir, frame_callback=frame_callback, cancel_check=cancel_check, progress_callback=progress_callback  # pass through
     )
+    frames_processed = artifacts.get("frames_processed", 0)
     baby_age_months = round(((dt.date.today() - birthdate).days) / 30.44, 2)
 
     if cancel_check is not None and cancel_check():
@@ -65,6 +66,7 @@ def run(pose: str, video_path: str, birthdate: dt.date, out_dir: Path | None = N
             "scores": None,
             "artifacts": artifacts,
             "reports": {},
+            "frames_processed": frames_processed,
             "cancelled": True,
         }
 
@@ -102,5 +104,6 @@ def run(pose: str, video_path: str, birthdate: dt.date, out_dir: Path | None = N
         "scores": scores,
         "artifacts": artifacts,
         "reports": report_files,
+        "frames_processed": frames_processed,
         "cancelled": False,
     }

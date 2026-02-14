@@ -1,5 +1,7 @@
 import datetime
 import streamlit as st
+import threading
+import time
 from pathlib import Path
 
 # Internal imports
@@ -12,6 +14,19 @@ from core.pipeline import run as run_pipeline
 
 def render_app():
     # --- Setup ---
+    if "job_running" not in st.session_state:
+        st.session_state.job_running = False
+    if "cancel_requested" not in st.session_state:
+        st.session_state.cancel_requested = False
+    if "progress_frame" not in st.session_state:
+        st.session_state.progress_frame = 0
+    if "progress_fps" not in st.session_state:
+        st.session_state.progress_fps = 30
+    if "job_result" not in st.session_state:
+        st.session_state.job_result = None
+
+
+
     st.set_page_config(page_title="Infant Motor Development Analyzer", layout="wide")
     st.markdown(base_css(), unsafe_allow_html=True)
 

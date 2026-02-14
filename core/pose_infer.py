@@ -5,7 +5,8 @@ import numpy as np
 import config
 from .helpers import extract_keypoints_xy, normalize_coordinates, calculate_angle, draw_angle_arc  # if you keep it
 
-def infer_video_with_angles(model, video_path: str, out_dir: Path, frame_callback=None, cancel_check=None) -> dict:
+def infer_video_with_angles(model, video_path: str, out_dir: Path, frame_callback=None,
+                            cancel_check=None, progress_callback=None) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     video_path = str(video_path)
@@ -34,7 +35,10 @@ def infer_video_with_angles(model, video_path: str, out_dir: Path, frame_callbac
         while True:
             if cancel_check is not None and cancel_check():
                 was_cancelled = True
+                if progress_callback is not None:
+                    progress_callback(frame_number, fps, True)
                 break
+
             ret, frame = cap.read()
             if not ret:
                 break
@@ -42,6 +46,8 @@ def infer_video_with_angles(model, video_path: str, out_dir: Path, frame_callbac
             frame = cv2.resize(frame, (fw, fh))
             frame_number += 1
             t = frame_number / fps
+            if progress_callback is not None:
+                progress_callback(frame_number, fps, False)
 
             results = model(frame)
             if results and results[0].keypoints is not None:
