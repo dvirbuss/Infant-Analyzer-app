@@ -1053,12 +1053,14 @@ def run_main_process(pose):
     prone_trained_model_path = f'final_models/best_prone_1.6.25.pt'
     supine_trained_model_path = f"final_models/best_supine_16.10.25.pt"
     video_name = os.path.splitext(os.path.basename(video_path))[0]
-    pe_trained_video_path = f"videos_output/PE_trained_{video_name}.mp4"
-    keypoints_tsv_path = f"videos_output/Keypoints_trained_{video_name}.tsv"
-    angles_tsv_path = f"videos_output/Angles_trained_{video_name}.tsv"
-    angles_plt_path = f"videos_output/Angles_Graph_{video_name}.jpg"
-    expert_plt_path = f"videos_output/Expert_Side_{video_name}.jpg"
-    parent_plt_path = f"videos_output/Parent_Side_{video_name}.jpg"
+    time_stamp = datetime.datetime.now().strftime("%H:%M")
+    asses_dir = f"videos_output/{time_stamp}"
+    pe_trained_video_path = f"{asses_dir}/PE_trained_{video_name}.mp4"
+    keypoints_tsv_path = f"{asses_dir}/Keypoints_trained_{video_name}.tsv"
+    angles_tsv_path = f"{asses_dir}/Angles_trained_{video_name}.tsv"
+    angles_plt_path = f"{asses_dir}/Angles_Graph_{video_name}.jpg"
+    expert_plt_path = f"{asses_dir}/Expert_Side_{video_name}.jpg"
+    parent_plt_path = f"{asses_dir}/Parent_Side_{video_name}.jpg"
 
     try:
         save_first_frame_keypoints(prone_trained_model_path, video_path)

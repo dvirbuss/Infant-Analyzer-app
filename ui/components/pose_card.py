@@ -132,9 +132,9 @@ def render_pose_card(
                         st.error("Upload looks empty (0 bytes). Try uploading again.")
                     else:
                         saved_path = save_fn(video_bytes, uploaded.name, subdir_name)
-                        st.session_state[k_saved] = saved_path
+                        st.session_state[f"{spec.key}__path"] = str(saved_path)
                         st.session_state[k_confirmed] = True
-                        # Force a rerun so the GENERATE button in main.py sees the update immediately
+                        # Force a rerun so the GENERATE button in streamlit_ui.py sees the update immediately
                         st.rerun()
             else:
                 # Instead of a disabled button, show a success message to remove the Red X cursor

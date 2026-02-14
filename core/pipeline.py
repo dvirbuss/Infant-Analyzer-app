@@ -24,7 +24,14 @@ def load_model(model_path: Path) -> YOLO:
     return _MODEL_CACHE[key]
 
 
-def run(pose: str, video_path: str, birthdate: dt.date, out_dir: Path, frame_callback=None) -> dict:
+def run(pose: str, video_path: str, birthdate: dt.date, out_dir: Path | None = None,
+    runner: str = "unknown", frame_callback=None, cancel_check=None) -> dict:
+    if out_dir is None:
+        stamp = dt.datetime.now().strftime("%d-%m-%y_%H-%M")
+        video_name = Path(video_path).stem
+        folder_name = f"{pose.lower()}_{video_name}_{stamp}_{runner}"
+        out_dir = Path(config.VIDEOS_OUTPUT_DIR) / folder_name
+
     out_dir.mkdir(parents=True, exist_ok=True)
 
     model_path = {
@@ -46,13 +53,24 @@ def run(pose: str, video_path: str, birthdate: dt.date, out_dir: Path, frame_cal
 
     # 2) inference -> artifacts
     artifacts = infer_video_with_angles(model=model, video_path=video_path,
-        out_dir=out_dir, frame_callback=frame_callback,  # pass through
+        out_dir=out_dir, frame_callback=frame_callback, cancel_check=cancel_check  # pass through
     )
+    baby_age_months = round(((dt.date.today() - birthdate).days) / 30.44, 2)
+
+    if cancel_check is not None and cancel_check():
+        return {
+            "pose": pose,
+            "age_months": baby_age_months,
+            "aims_score": None,
+            "scores": None,
+            "artifacts": artifacts,
+            "reports": {},
+            "cancelled": True,
+        }
 
     # 3) impute keypoints in-place
     knn_impute_keypoints_tsv(artifacts["keypoints_tsv"])
 
-    # 4) scoring
     # 4) scoring
     scores = score_all(artifacts["keypoints_tsv"], artifacts["angles_tsv"])
     baby_age_months = round(((dt.date.today() - birthdate).days) / 30.44, 2)
@@ -84,4 +102,5 @@ def run(pose: str, video_path: str, birthdate: dt.date, out_dir: Path, frame_cal
         "scores": scores,
         "artifacts": artifacts,
         "reports": report_files,
+        "cancelled": False,
     }

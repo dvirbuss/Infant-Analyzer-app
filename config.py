@@ -31,3 +31,7 @@ SUPINE_MODEL_PATH = BASE_DIR / "final_models" / "best_supine_16.10.25.pt"
 VIDEOS_OUTPUT_DIR = BASE_DIR / "videos_output"
 VIDEOS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+GOLD = (0, 215, 255)
+WHITE = (255, 255, 255)
+
+

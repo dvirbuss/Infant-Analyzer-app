@@ -66,19 +66,44 @@ def render_app():
         if st.button("GENERATE", disabled=not any_confirmed):
             progress_text = st.empty()
 
-            for pose_key in confirmed_keys:
-                progress_text.info(f"Running analysis for {pose_key}...")
+            pose_map = {
+                "prone": "Prone",
+                "supine": "Supine",
+                "sitting": "Sitting",
+            }
 
-                # Extract data and run the core pipeline
+            results = {}
+
+            with st.expander("Debug session_state"):
+                for k in ["prone", "supine", "sitting"]:
+                    st.write(k, "confirmed =", st.session_state.get(f"{k}__confirmed"))
+                    st.write(k, "path =", st.session_state.get(f"{k}__path"))
+
+            for pose_key in confirmed_keys:
+                pose_title = pose_map[pose_key]
+
+                video_path = st.session_state.get(f"{pose_key}__path", None)
+                if video_path is not None:
+                    video_path = str(video_path)
+
+                if not video_path:
+                    st.error(f"{pose_title}: Missing saved video path in session_state ({pose_key}__path).")
+                    continue
+
+                progress_text.info(f"Running analysis for {pose_title}...")
+
                 try:
-                    run_pipeline(
-                        pose=pose_key.capitalize(),
-                        video_path=st.session_state.get(f"{pose_key}__saved_path"),
-                        birthdate=birth_date,  # from your st.date_input
-                        out_dir=config.VIDEOS_OUTPUT_DIR / f"{pose_key}_{datetime.datetime.now().strftime('%H%M%S')}"
+                    result = run_pipeline(
+                        pose=pose_title,
+                        video_path=video_path,
+                        birthdate=birth_date,
+                        runner="streamlit",
                     )
+                    results[pose_key] = result
+                    st.success(f"{pose_title}: Done ✅ (AIMS={result['aims_score']})")
+
                 except Exception as e:
-                    st.error(f"Error in {pose_key}: {e}")
+                    st.error(f"Error in {pose_title}: {e}")
 
             progress_text.success("All analyses complete!")
             st.balloons()
